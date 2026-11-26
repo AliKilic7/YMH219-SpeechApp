@@ -31,7 +31,15 @@ namespace YMH219.SpeechApp.Services
         public TextToSpeechManager()
         {
             _synthesizer = new SpeechSynthesizer();
-            _synthesizer.SetOutputToDefaultAudioDevice();
+            try
+            {
+                _synthesizer.SetOutputToDefaultAudioDevice();
+            }
+            catch (Exception ex)
+            {
+                ErrorOccurred?.Invoke(this, new SpeechErrorEventArgs("Ses Çıkış Aygıtı Hatası", $"Varsayılan ses çıkış aygıtı ayarlanamadı: {ex.Message}"));
+            }
+
             _synthesizer.SpeakStarted += (_, _) =>
             {
                 IsSpeaking = true;
@@ -102,6 +110,11 @@ namespace YMH219.SpeechApp.Services
 
             try
             {
+                if (IsPaused)
+                {
+                    _synthesizer.Resume();
+                }
+
                 _synthesizer.SpeakAsyncCancelAll();
                 IsPaused = false;
                 _synthesizer.SpeakAsync(text);
